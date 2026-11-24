@@ -2,7 +2,6 @@
 const crypto = require("crypto");
 const { redis, listPosts, hasDb } = require("./_db");
 
-const CATS = ["Улс төр", "Эдийн засаг", "Нийгэм", "Спорт", "Технологи", "Эрүүл мэнд", "Байгаль орчин"];
 
 function ok(req) {
   const pass = process.env.ADMIN_PASSWORD || "";
@@ -25,17 +24,18 @@ module.exports = async (req, res) => {
       const t = String(d.t || "").trim();
       const b = String(d.body || "").split(/\n\s*\n/).map((x) => x.trim()).filter(Boolean);
       if (!t || !b.length) return res.status(400).json({ error: "Гарчиг болон текст заавал хэрэгтэй" });
-      const c = CATS.includes(d.c) ? d.c : "Нийгэм";
+      const c = String(d.c || "").trim().replace(/\s+/g, " ").slice(0, 24) || "Нийгэм";
+      const color = /^#[0-9a-f]{6}$/i.test(String(d.color || "")) ? d.color.toLowerCase() : "";
       const tags = String(d.tags || "").split(/[,#\n]/).map((x) => x.trim().replace(/\s+/g, " ")).filter(Boolean).slice(0, 6).map((x) => x.slice(0, 30));
 
       let post;
       if (req.method === "PUT") {
         const old = await redis("HGET", "posts", String(d.id || ""));
         if (!old) return res.status(404).json({ error: "Мэдээ олдсонгүй" });
-        post = { ...JSON.parse(old), t, c, b, tags, pin: Boolean(d.pin) };
+        post = { ...JSON.parse(old), t, c, b, tags, color, pin: Boolean(d.pin) };
       } else {
         post = { id: "p-" + Date.now().toString(36) + crypto.randomBytes(2).toString("hex"),
-                 t, c, b, tags, at: new Date().toISOString(), pin: Boolean(d.pin), s: [] };
+                 t, c, b, tags, color, at: new Date().toISOString(), pin: Boolean(d.pin), s: [] };
       }
       if (d.image && /^data:image\/(jpeg|png|webp);base64,/.test(d.image)) {
         if (d.image.length > 950000) return res.status(400).json({ error: "Зураг хэт том байна" });

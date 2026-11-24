@@ -33,6 +33,24 @@ li .m{color:var(--muted);font-size:13px}
 .pin{color:#fff;background:var(--accent);font-size:11px;font-weight:700;padding:2px 7px;border-radius:3px;margin-left:6px}
 .sm{min-height:36px;padding:6px 12px;font-size:14px}
 .hide{display:none}
+.tabs{display:flex;gap:6px;margin-top:22px;border-bottom:1px solid var(--line)}
+.tabs button{padding:10px 16px;border:0;background:none;font:600 15px var(--sans);cursor:pointer;border-bottom:3px solid transparent;color:var(--muted)}
+.tabs button.on{color:var(--text);border-bottom-color:var(--text)}
+.sw{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.sw label{margin:0;display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid var(--line);border-radius:99px;background:#fff;cursor:pointer;font-weight:600;font-size:13.5px}
+.sw input{width:auto;margin:0}.sw i{width:16px;height:16px;border-radius:50%;display:inline-block;border:1px solid rgba(0,0,0,.15)}
+.sw label:has(input:checked){outline:2px solid var(--text)}
+.nrow{display:grid;grid-template-columns:28px 1fr 1.6fr auto;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.nrow b{color:var(--muted);text-align:center}.nrow .ops{display:flex;gap:4px}.nrow .ops button{min-height:38px;padding:4px 10px}
+.fixed{opacity:.65}
+.colors{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:8px}
+.colors label{margin:0 0 6px}.colors input[type=color]{height:46px;padding:3px;cursor:pointer}
+.presets{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.preset{display:inline-flex;align-items:center;gap:8px;min-height:38px;padding:6px 12px;border:1px solid var(--line);border-radius:6px;background:#fff;cursor:pointer;font:600 14px var(--sans)}
+.preset i{display:inline-flex;width:34px;height:18px;border-radius:3px;overflow:hidden;border:1px solid rgba(0,0,0,.15)}.preset i b{flex:1}
+#tprev{margin-top:16px;border-radius:8px;padding:18px;border:1px solid var(--line)}
+#tprev .lg{font:700 24px Georgia,serif}#tprev .bx{margin-top:10px;padding:12px;border:1px solid currentColor}
+@media(max-width:600px){.colors{grid-template-columns:repeat(2,minmax(0,1fr))}.nrow{grid-template-columns:1fr auto}.nrow b{display:none}.nrow input{grid-column:1/-1}}
 @media(max-width:600px){.row{grid-template-columns:1fr}li{flex-wrap:wrap}}
 </style></head><body>
 <header><div class="wrap top"><a class="logo" href="/">mandate<span>.mn</span></a><button id="logout" class="btn ghost sm hide">Гарах</button></div></header>
@@ -49,6 +67,31 @@ li .m{color:var(--muted);font-size:13px}
 </section>
 
 <section id="panel" class="hide">
+  <div class="tabs" role="tablist"><button type="button" class="on" data-tab="posts">Мэдээ</button><button type="button" data-tab="site">Сайтын тохиргоо</button></div>
+  <div id="tab-site" class="hide">
+    <div class="card">
+      <h1>Цэс (nav bar)</h1>
+      <p class="hint">"Онцлох" нь нүүр хуудас тул үргэлж эхэнд байна. Бусдыг нэмэх, нэрийг нь солих, дарааллыг өөрчлөх, устгах боломжтой. <b>Түлхүүр үг</b> бичвэл тэр үг орсон News.mn, iKon.mn-ийн мэдээ тухайн цэсэнд автоматаар орно (таслалаар тусгаарлана).</p>
+      <div class="nrow fixed"><b>★</b><input value="Онцлох" disabled><input value="Нүүр хуудас" disabled><span></span></div>
+      <div id="navList"></div>
+      <div class="actions"><button type="button" id="navAdd" class="btn ghost">+ Цэс нэмэх</button></div>
+    </div>
+    <div class="card">
+      <h1>Сайтын өнгө</h1>
+      <p class="hint">Бэлэн загвараас сонгох эсвэл өнгө бүрийг өөрөө сонгоно.</p>
+      <div class="presets" id="presets"></div>
+      <div class="colors">
+        <div><label for="cbg">Дэвсгэр</label><input type="color" id="cbg"></div>
+        <div><label for="cpaper">Хайрцаг</label><input type="color" id="cpaper"></div>
+        <div><label for="ctext">Бичиг</label><input type="color" id="ctext"></div>
+        <div><label for="cmark">Онцлох өнгө</label><input type="color" id="cmark"></div>
+      </div>
+      <div id="tprev"><div class="lg">mandate<span id="pm">.mn</span></div><div class="bx">Өнөөдрийн товч — ингэж харагдана</div></div>
+    </div>
+    <div class="actions"><button type="button" id="siteSave" class="btn">Тохиргоог хадгалах</button></div>
+    <div id="siteMsg" class="msg"></div>
+  </div>
+  <div id="tab-posts">
   <div class="card">
     <h1 id="formTitle">Шинэ мэдээ нийтлэх</h1>
     <form id="postForm">
@@ -57,7 +100,7 @@ li .m{color:var(--muted);font-size:13px}
       <input id="t" required maxlength="200">
       <div class="row">
         <div><label for="c">Ангилал</label>
-          <select id="c"><option>Улс төр</option><option>Эдийн засаг</option><option>Нийгэм</option><option>Спорт</option><option>Технологи</option><option>Эрүүл мэнд</option><option>Байгаль орчин</option></select></div>
+          <select id="c"></select></div>
         <div><label for="img">Зураг</label><input id="img" type="file" accept="image/*">
           <div class="hint">Компьютер эсвэл утаснаасаа сонгоно. Сонгоогүй бол ангиллын зураг гарна.</div></div>
       </div>
@@ -65,6 +108,9 @@ li .m{color:var(--muted);font-size:13px}
       <label for="body">Мэдээний текст *</label>
       <textarea id="body" required></textarea>
       <div class="hint">Догол мөр бүрийн хооронд нэг хоосон мөр үлдээнэ. <b>1-р догол:</b> юу болов. <b>2-р догол:</b> "Яагаад чухал вэ" хэсэг болно. <b>3-р догол:</b> "Нарийвчилсан". Үлдсэн нь "Мэдэх ёстой" гэсэн цэгтэй жагсаалт болно.</div>
+      <label>Мэдээний өнгө (заавал биш)</label>
+      <div class="sw" id="pcolor"></div>
+      <div class="hint">Сонгосон өнгөөр мэдээний ангиллын бичиг болон мэдээний дээд зураас будагдана.</div>
       <label for="tags">Шошго (заавал биш)</label>
       <input id="tags" maxlength="200" placeholder="Жишээ нь: Сонгууль, Нүүрс, Авлига">
       <div class="hint">Таслалаар тусгаарлана. Бичээгүй бол сайт текстээс нь автоматаар шошго олно.</div>
@@ -80,6 +126,7 @@ li .m{color:var(--muted);font-size:13px}
   <h2>Миний нийтэлсэн мэдээ</h2>
   <ul id="list"></ul>
   <p id="empty" class="hint">Одоогоор нийтэлсэн мэдээ алга.</p>
+  </div>
 </section>
 </main>
 
@@ -98,6 +145,41 @@ async function api(method,body,q=""){
   return j;
 }
 
+// ===== Мэдээний өнгө =====
+const PCOL=[["","Өнгөгүй","#ffffff"],["#d92d20","Улаан"],["#1f4bff","Цэнхэр"],["#1a7f37","Ногоон"],["#e8a300","Шар"],["#c11574","Ягаан"],["#7a2ee6","Нил ягаан"],["#111111","Хар"]];
+$("pcolor").innerHTML=PCOL.map(([v,l,sw],i)=>`<label><input type="radio" name="pc" value="${v}"${i?"":" checked"}><i style="background:${sw||v}"></i>${l}</label>`).join("")+`<label><input type="radio" name="pc" value="custom"><input type="color" id="pcc" value="#0e7490" style="width:28px;height:22px;padding:0;border:0"> Өөр</label>`;
+const pcGet=()=>{const v=(document.querySelector('input[name=pc]:checked')||{}).value||"";return v==="custom"?$("pcc").value:v};
+function pcSet(c){c=c||"";const r=[...document.querySelectorAll('input[name=pc]')];const m=r.find(x=>x.value===c);if(m)m.checked=true;else{r.find(x=>x.value==="custom").checked=true;$("pcc").value=c}}
+$("pcc").addEventListener("input",()=>{document.querySelector('input[name=pc][value=custom]').checked=true});
+// ===== Сайтын тохиргоо =====
+const BASE=["Улс төр","Эдийн засаг","Нийгэм","Спорт","Технологи","Эрүүл мэнд","Байгаль орчин"];
+const DEF_NAV=[{l:"Улс төр",kw:""},{l:"Нийгэм",kw:""},{l:"Эдийн засаг",kw:""}];
+const DEF_THEME={bg:"#f5ecd2",paper:"#faf4e3",text:"#111111",mark:"#1f4bff"};
+const PRESETS=[["Шар цаас",DEF_THEME],["Цагаан",{bg:"#ffffff",paper:"#f4f4f2",text:"#111111",mark:"#d92d20"}],["Цэнхэр",{bg:"#eef3fb",paper:"#ffffff",text:"#0b1b33",mark:"#1f4bff"}],["Ногоон",{bg:"#eef5ee",paper:"#ffffff",text:"#10241a",mark:"#1a7f37"}],["Харанхуй",{bg:"#141414",paper:"#1f1f1f",text:"#f2efe8",mark:"#ffcc33"}]];
+let NAV=DEF_NAV.map(x=>({...x})),THEME={...DEF_THEME};
+function fillCats(){const cur=$("c").value;const all=[...new Set([...NAV.map(x=>x.l),...BASE])];
+  $("c").innerHTML=all.map(l=>`<option>${esc(l)}</option>`).join("");if(all.includes(cur))$("c").value=cur}
+function drawNav(){$("navList").innerHTML=NAV.map((x,i)=>`<div class="nrow"><b>${i+1}</b><input data-i="${i}" data-k="l" value="${esc(x.l)}" maxlength="24" placeholder="Цэсний нэр" aria-label="Цэсний нэр"><input data-i="${i}" data-k="kw" value="${esc(x.kw||"")}" placeholder="Түлхүүр үг: сонгууль, нам" aria-label="Түлхүүр үг"><span class="ops"><button type="button" class="btn ghost sm" data-up="${i}" aria-label="Дээш">↑</button><button type="button" class="btn ghost sm" data-dn="${i}" aria-label="Доош">↓</button><button type="button" class="btn ghost sm" data-rm="${i}" aria-label="Устгах">✕</button></span></div>`).join("");fillCats()}
+$("navList").addEventListener("input",e=>{const i=e.target.dataset.i;if(i==null)return;NAV[i][e.target.dataset.k]=e.target.value;if(e.target.dataset.k==="l")fillCats()});
+$("navList").addEventListener("click",e=>{const d=e.target.dataset;let i;
+  if(d.up!=null&&(i=+d.up)>0)[NAV[i-1],NAV[i]]=[NAV[i],NAV[i-1]];
+  else if(d.dn!=null&&(i=+d.dn)<NAV.length-1)[NAV[i+1],NAV[i]]=[NAV[i],NAV[i+1]];
+  else if(d.rm!=null){if(NAV.length<=1)return show($("siteMsg"),"Дор хаяж нэг цэс үлдэх ёстой",false);NAV.splice(+d.rm,1)}else return;drawNav()});
+$("navAdd").addEventListener("click",()=>{if(NAV.length>=12)return;NAV.push({l:"",kw:""});drawNav();const ins=$("navList").querySelectorAll('input[data-k=l]');ins[ins.length-1].focus()});
+function drawTheme(){for(const k of ["bg","paper","text","mark"])$("c"+k).value=THEME[k];
+  const p=$("tprev");p.style.background=THEME.bg;p.style.color=THEME.text;$("pm").style.color=THEME.mark;p.querySelector(".bx").style.background=THEME.paper}
+for(const k of ["bg","paper","text","mark"])$("c"+k).addEventListener("input",e=>{THEME[k]=e.target.value;drawTheme()});
+$("presets").innerHTML=PRESETS.map(([n,t],i)=>`<button type="button" class="preset" data-p="${i}"><i><b style="background:${t.bg}"></b><b style="background:${t.paper}"></b><b style="background:${t.text}"></b><b style="background:${t.mark}"></b></i>${n}</button>`).join("");
+$("presets").addEventListener("click",e=>{const b=e.target.closest("[data-p]");if(!b)return;THEME={...PRESETS[+b.dataset.p][1]};drawTheme()});
+async function loadSite(){try{const j=await (await fetch("/api/settings",{cache:"no-store"})).json();if(Array.isArray(j.nav)&&j.nav.length)NAV=j.nav;if(j.theme)THEME={...DEF_THEME,...j.theme}}catch(e){}drawNav();drawTheme()}
+$("siteSave").addEventListener("click",async()=>{NAV=NAV.map(x=>({l:x.l.trim(),kw:(x.kw||"").trim()})).filter(x=>x.l);drawNav();$("siteSave").disabled=true;
+  try{const r=await fetch("/api/settings",{method:"PUT",headers:{"Content-Type":"application/json","x-admin-password":pass},body:JSON.stringify({nav:NAV,theme:THEME})});const j=await r.json().catch(()=>({}));
+    if(!r.ok)throw new Error(j.error||"Хадгалж чадсангүй");show($("siteMsg"),"Хадгалагдлаа! Сайт дээр 1 минутын дотор харагдана.",true)}catch(err){show($("siteMsg"),err.message,false)}
+  $("siteSave").disabled=false});
+document.querySelector(".tabs").addEventListener("click",e=>{const t=e.target.dataset.tab;if(!t)return;
+  document.querySelectorAll(".tabs button").forEach(b=>b.classList.toggle("on",b.dataset.tab===t));
+  $("tab-posts").classList.toggle("hide",t!=="posts");$("tab-site").classList.toggle("hide",t!=="site")});
+drawNav();drawTheme();
 async function load(){
   posts=await api("GET");
   $("empty").style.display=posts.length?"none":"block";
@@ -107,7 +189,7 @@ async function load(){
 }
 
 async function enter(){
-  try{await load();$("login").classList.add("hide");$("panel").classList.remove("hide");$("logout").classList.remove("hide");try{sessionStorage.setItem("ap",pass)}catch(e){}}
+  try{await load();loadSite();$("login").classList.add("hide");$("panel").classList.remove("hide");$("logout").classList.remove("hide");try{sessionStorage.setItem("ap",pass)}catch(e){}}
   catch(e){pass="";try{sessionStorage.removeItem("ap")}catch(x){}show($("loginMsg"),e.message,false)}
 }
 
@@ -126,14 +208,14 @@ $("img").addEventListener("change",async()=>{
   im.src=url;
 });
 
-function reset(){$("postForm").reset();$("pid").value="";image="";$("preview").style.display="none";
+function reset(){$("postForm").reset();pcSet("");$("pid").value="";image="";$("preview").style.display="none";
   $("formTitle").textContent="Шинэ мэдээ нийтлэх";$("save").textContent="Нийтлэх";$("cancel").classList.add("hide")}
 $("cancel").addEventListener("click",reset);
 
 $("postForm").addEventListener("submit",async e=>{
   e.preventDefault();const id=$("pid").value;$("save").disabled=true;
   try{
-    await api(id?"PUT":"POST",{id,t:$("t").value,c:$("c").value,body:$("body").value,tags:$("tags").value,pin:$("pin").checked,image});
+    await api(id?"PUT":"POST",{id,t:$("t").value,c:$("c").value,body:$("body").value,tags:$("tags").value,color:pcGet(),pin:$("pin").checked,image});
     show($("msg"),id?"Засвар хадгалагдлаа.":"Нийтлэгдлээ! 1 минутын дотор нүүр хуудсанд гарна.",true);reset();await load();
   }catch(err){show($("msg"),err.message,false);if(err.status===401)setTimeout(()=>location.reload(),1500)}
   $("save").disabled=false;
@@ -142,7 +224,7 @@ $("postForm").addEventListener("submit",async e=>{
 $("list").addEventListener("click",async e=>{
   const ed=e.target.dataset.edit,del=e.target.dataset.del;
   if(ed){const p=posts.find(x=>x.id===ed);if(!p)return;
-    $("pid").value=p.id;$("t").value=p.t;$("c").value=p.c;$("body").value=p.b.join("\n\n");$("pin").checked=!!p.pin;$("tags").value=(p.tags||[]).join(", ");image="";
+    $("pid").value=p.id;$("t").value=p.t;$("c").value=p.c;$("body").value=p.b.join("\n\n");$("pin").checked=!!p.pin;$("tags").value=(p.tags||[]).join(", ");pcSet(p.color);if(![...$("c").options].some(o=>o.value===p.c))$("c").insertAdjacentHTML("beforeend",`<option>${esc(p.c)}</option>`);$("c").value=p.c;image="";
     if(p.img){$("preview").src=p.img;$("preview").style.display="block"}
     $("formTitle").textContent="Мэдээ засах";$("save").textContent="Хадгалах";$("cancel").classList.remove("hide");scrollTo(0,0)}
   if(del){
