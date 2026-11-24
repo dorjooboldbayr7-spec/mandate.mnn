@@ -3,4 +3,4 @@ Allow: /
 Disallow: /admin
 Disallow: /api/
 
-Sitemap: https://mandate.mn/sitemap.xml
+Sitemap: https://www.mandate.mn/sitemap.xml
