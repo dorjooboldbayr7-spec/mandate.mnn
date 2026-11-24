@@ -189,12 +189,12 @@ async function load(){
 }
 
 async function enter(){
-  try{await load();loadSite();$("login").classList.add("hide");$("panel").classList.remove("hide");$("logout").classList.remove("hide");try{sessionStorage.setItem("ap",pass)}catch(e){}}
+  try{await load();loadSite();try{localStorage.setItem("madm","1")}catch(x){}$("login").classList.add("hide");$("panel").classList.remove("hide");$("logout").classList.remove("hide");try{sessionStorage.setItem("ap",pass)}catch(e){}}
   catch(e){pass="";try{sessionStorage.removeItem("ap")}catch(x){}show($("loginMsg"),e.message,false)}
 }
 
 $("loginForm").addEventListener("submit",e=>{e.preventDefault();pass=$("pass").value;enter()});
-$("logout").addEventListener("click",()=>{try{sessionStorage.removeItem("ap")}catch(e){}location.reload()});
+$("logout").addEventListener("click",()=>{try{sessionStorage.removeItem("ap");localStorage.removeItem("madm")}catch(e){}location.reload()});
 
 // Зургийг хөтөч дээр 1200px болгож шахна (сервер рүү хөнгөн очно)
 $("img").addEventListener("change",async()=>{

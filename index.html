@@ -93,6 +93,16 @@ nav{border-top:1px solid var(--line)}
 footer{border-top:1px solid var(--rule);margin-top:48px;padding:26px 0;color:var(--muted);font-size:14px}
 footer b{font:700 20px var(--head);color:var(--text)}footer b span{color:var(--mark)}
 a:focus-visible,button:focus-visible{outline:2px solid var(--text);outline-offset:2px}
+/* Админы "+ цэс" */
+.nadd{flex:none;align-self:center;margin-left:6px;width:30px;height:30px;border:1px dashed var(--text);border-radius:50%;background:transparent;color:var(--text);font:700 18px/1 var(--sans);cursor:pointer}
+.nadd:hover{background:var(--text);color:var(--bg);border-style:solid}
+.npop{position:absolute;z-index:30;background:var(--paper);border:1px solid var(--text);padding:16px;width:300px;max-width:calc(100vw - 24px);box-shadow:0 10px 30px rgba(0,0,0,.18)}
+.npop b{display:block;font:700 18px var(--head);margin-bottom:8px}
+.npop label{display:block;font:600 12.5px var(--sans);margin:10px 0 4px}
+.npop input{width:100%;padding:9px 10px;font:16px var(--sans);border:1px solid var(--line);background:#fff;color:#111}
+.npop .r{display:flex;gap:8px;margin-top:14px}.npop button{min-height:40px;padding:8px 14px;font:700 14px var(--sans);cursor:pointer;border:1px solid var(--text)}
+.npop .ok{background:var(--text);color:var(--bg)}.npop .no{background:transparent;color:var(--text)}
+.npop .er{color:#b42318;font-size:13px;margin-top:8px;min-height:1em}.npop .h{font-size:12px;color:var(--muted);margin-top:4px}
 /* Хайх товч */
 .hr{display:flex;align-items:center;gap:18px}
 .sbtn{display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border:1px solid var(--text);border-radius:50%}
@@ -310,14 +320,41 @@ function render(){
     else if(rr.startsWith("c-")){html=feed(sorted().filter(n=>n.c===rr.slice(2)),{title:rr.slice(2)});active="none"}
     else{html=home();active=""}}
   document.getElementById("main").innerHTML=html;
-  document.getElementById("nav").innerHTML=[["Онцлох",""],...NAV.map(x=>[x.l,navSlug(x)])].map(([l,s])=>`<a href="#${esc(s)}" class="${s===active?"on":""}">${esc(l)}</a>`).join("");
+  document.getElementById("nav").innerHTML=[["Онцлох",""],...NAV.map(x=>[x.l,navSlug(x)])].map(([l,s])=>`<a href="#${esc(s)}" class="${s===active?"on":""}">${esc(l)}</a>`).join("")+(isAdm()?'<button class="nadd" id="nadd" aria-label="Цэс нэмэх" title="Цэс нэмэх">+</button>':"");
   document.getElementById("sbtn").classList.toggle("on",r==="search");
   if(r==="search"){searchResults();const q=document.getElementById("q");if(q&&!isMobile)q.focus()}
 }
 addEventListener("popstate",e=>{const r=(e.state&&typeof e.state.r==="string")?e.state.r:location.hash.slice(1);back.pop();route=r;shown=STEP;render();scrollTo(0,0)});
 addEventListener("hashchange",()=>{const r=location.hash.slice(1);if(r!==route){route=r;shown=STEP;render();scrollTo(0,0)}});
+// ===== Цэсний мөр дээрээс шууд цэс нэмэх (зөвхөн админд) =====
+function isAdm(){try{return localStorage.getItem("madm")==="1"}catch(e){return false}}
+function apass(){try{return sessionStorage.getItem("ap")||""}catch(e){return ""}}
+function closePop(){const p=document.getElementById("npop");if(p)p.remove()}
+function openPop(btn){closePop();const r=btn.getBoundingClientRect();const p=document.createElement("div");p.className="npop";p.id="npop";
+  p.innerHTML=`<b>Шинэ цэс нэмэх</b><label for="nl">Цэсний нэр</label><input id="nl" maxlength="24" placeholder="Жишээ нь: Спорт">
+  <label for="nk">Түлхүүр үг (заавал биш)</label><input id="nk" placeholder="бөх, шатар, тэмцээн"><div class="h">Энэ үг орсон мэдээ автоматаар орно.</div>
+  ${apass()?"":'<label for="np">Админы нууц үг</label><input id="np" type="password" autocomplete="current-password">'}
+  <div class="er" id="ner"></div><div class="r"><button class="ok" id="nok">Нэмэх</button><button class="no" id="nno">Болих</button></div>`;
+  document.body.appendChild(p);p.style.top=(r.bottom+scrollY+8)+"px";p.style.left=Math.max(12,Math.min(r.left+scrollX-150,innerWidth-p.offsetWidth-12))+"px";
+  document.getElementById("nl").focus()}
+async function addNav(){const l=document.getElementById("nl").value.trim().replace(/\s+/g," "),kw=document.getElementById("nk").value.trim();
+  const pw=apass()||((document.getElementById("np")||{}).value||"");const er=document.getElementById("ner");
+  if(!l){er.textContent="Цэсний нэрээ бичнэ үү";return}if(NAV.some(x=>x.l===l)){er.textContent="Ийм нэртэй цэс байна";return}
+  if(!pw){er.textContent="Нууц үгээ бичнэ үү";return}
+  const b=document.getElementById("nok");b.disabled=true;b.textContent="Хадгалж байна…";
+  try{let cur={};try{cur=await (await fetch("/api/settings",{cache:"no-store"})).json()}catch(e){}
+    const nav=[...(Array.isArray(cur.nav)&&cur.nav.length?cur.nav:NAV),{l,kw}];
+    const r=await fetch("/api/settings",{method:"PUT",headers:{"Content-Type":"application/json","x-admin-password":pw},body:JSON.stringify({nav,theme:cur.theme||{}})});
+    const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||"Хадгалж чадсангүй");
+    try{sessionStorage.setItem("ap",pw)}catch(e){}
+    NAV=j.nav||nav;try{localStorage.setItem("mnav",JSON.stringify(NAV))}catch(e){}closePop();toast("“"+l+"” цэс нэмэгдлээ");go(navSlug(NAV.find(x=>x.l===l)||{l}))}
+  catch(err){er.textContent=err.message;b.disabled=false;b.textContent="Нэмэх"}}
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closePop();if(e.key==="Enter"&&e.target.closest&&e.target.closest("#npop")){e.preventDefault();addNav()}});
 document.addEventListener("input",e=>{if(e.target.id==="q"){Q=e.target.value;searchResults()}});
 document.addEventListener("click",e=>{
+  if(e.target.id==="nadd"){e.preventDefault();openPop(e.target);return}
+  if(e.target.id==="nok"){addNav();return}if(e.target.id==="nno"){closePop();return}
+  if(document.getElementById("npop")&&!e.target.closest("#npop"))closePop();
   const sb=e.target.closest("[data-share]");if(sb){e.preventDefault();doShare(sb.dataset.share,sb.dataset.id);return}
   if(e.target.id==="more"){shown+=STEP;const y=scrollY;render();scrollTo(0,y);return}
   const a=e.target.closest("a");if(!a)return;
