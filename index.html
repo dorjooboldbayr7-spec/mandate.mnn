@@ -326,8 +326,11 @@ document.addEventListener("click",e=>{
 try{history.replaceState({r:route},"")}catch(e){}
 // Шинэ мэдээг /api/news-ээс автоматаар татна (нээгдэхэд болон 2 минут тутам)
 const CIMG={"Улс төр": "uls-tur", "Эдийн засаг": "ediin-zasag", "Нийгэм": "niigem", "Спорт": "sport", "Технологи": "tehnologi", "Эрүүл мэнд": "eruul-mend", "Байгаль орчин": "cattle-snow"};
+let liveFail=0;
 async function live(){try{
-  const r=await fetch("/api/news",{cache:"no-store"});if(!r.ok)return;const list=await r.json();if(!Array.isArray(list))return;
+  const ctl=new AbortController();const tm=setTimeout(()=>ctl.abort(),15000);
+  let r;try{r=await fetch("/api/news",{signal:ctl.signal})}finally{clearTimeout(tm)}
+  if(!r.ok)throw 0;liveFail=0;const list=await r.json();if(!Array.isArray(list))return;
   const have=new Map(items.map(x=>[x.id,x]));let changed=false;
   const ownIds=new Set(list.filter(n=>n.own).map(n=>n.id));
   // устгагдсан админы мэдээг хасна
@@ -340,7 +343,7 @@ async function live(){try{
     items.push({...n,img,at:Date.parse(n.at)});fresh.add(n.id);changed=true}
   const calm=()=>!route||!(route.startsWith("m-")||route==="search");
   if(changed){if(calm()){const y=scrollY;render();scrollTo(0,y)}setTimeout(()=>{fresh.clear();if(calm()){const y=scrollY;render();scrollTo(0,y)}},8000)}
-}catch(e){}}
+}catch(e){if(++liveFail<4)setTimeout(live,4000)}}
 live();setInterval(live,60000);clocks();setInterval(clocks,30000);
 render();loadSettings();setInterval(loadSettings,5*60000);loadMkt();loadPop();setInterval(loadMkt,30*60000);setInterval(loadPop,5*60000);
 setInterval(()=>{if(route!=="search"&&!(route||"").startsWith("m-")){const y=scrollY;render();scrollTo(0,y)}},60000);
